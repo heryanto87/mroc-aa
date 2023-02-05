@@ -21,9 +21,9 @@ const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
 
 export const simpleAccountCreate = async (req: any, res: any) => {
   try {
-    // const signingKey = req.body.signingKey
+    const signingKey = req.body.signingKey
     // create random signing key
-    const signingKey = new ethers.Wallet(ethers.utils.randomBytes(32)).privateKey
+    // const signingKey = new ethers.Wallet(ethers.utils.randomBytes(32)).privateKey
 
     const accountAPI = getSimpleAccount(
       provider,
