@@ -50,9 +50,12 @@ export const simpleAccountCreate = async (req: any, res: any) => {
 
     console.log(`Activation transaction: ${activationTx}`)
 
-    return res.status(200).send(`Simple Account Address: ${address}`)
+    return res.status(200).json({
+      smartAccount: address,
+      success: 1,
+    })
   } catch (error) {
-    return res.status(500).send(`Error: ${error}`)
+    return res.status(500).send(error)
   }
 }
 
