@@ -1,22 +1,11 @@
-import {
-  getVerifyingPaymaster,
-  getSimpleAccount,
-  getGasFee,
-  printOp,
-  getHttpRpcClient,
-} from '../src'
-import { ethers } from 'ethers'
+import { getVerifyingPaymaster, getSimpleAccount, getGasFee, printOp, getHttpRpcClient } from "../src"
+import { ethers } from "ethers"
 
 const rpcUrl = process.env.RPC_URL
-const bundlerUrl =
-  process.env.BUNDLER_URL ||
-  'https://app.stackup.sh/api/v1/bundler/0c73bde6b34757eecd80fe35c8a8606c93136d5fca007bae2718f245ff02caef'
-const entryPoint =
-  process.env.ENTRY_POINT || '0x0f46c65c17aa6b4102046935f33301f0510b163a'
-const simpleAccountFactory =
-  process.env.SIMPLE_ACCOUNT_FACTORY ||
-  '0x6C583EE7f3a80cB53dDc4789B0Af1aaFf90e55F3'
-const paymasterUrl = process.env.PAYMASTER_URL || ''
+const bundlerUrl = process.env.BUNDLER_URL || "https://public.stackup.sh/api/v1/node/ethereum-sepolia"
+const entryPoint = process.env.ENTRY_POINT || "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"
+const simpleAccountFactory = process.env.SIMPLE_ACCOUNT_FACTORY || "0x9406Cc6185a346906296840746125a0E44976454"
+const paymasterUrl = process.env.PAYMASTER_URL || ""
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl)
 
 export const simpleAccountCreate = async (req: any, res: any) => {
@@ -25,12 +14,7 @@ export const simpleAccountCreate = async (req: any, res: any) => {
     // create random signing key
     // const signingKey = new ethers.Wallet(ethers.utils.randomBytes(32)).privateKey
 
-    const accountAPI = getSimpleAccount(
-      provider,
-      signingKey,
-      entryPoint,
-      simpleAccountFactory
-    )
+    const accountAPI = getSimpleAccount(provider, signingKey, entryPoint, simpleAccountFactory)
 
     const address = await accountAPI.getCounterFactualAddress()
 
@@ -45,7 +29,7 @@ export const simpleAccountCreate = async (req: any, res: any) => {
     // activate account
     const activationTx = await simpleAccountTransfer({
       signKey: signingKey,
-      paymaster: '',
+      paymaster: "",
     })
 
     console.log(`Activation transaction: ${activationTx}`)
@@ -61,24 +45,16 @@ export const simpleAccountCreate = async (req: any, res: any) => {
 
 async function simpleAccountTransfer(options: any) {
   try {
-    const paymasterAPI = options.paymaster
-      ? getVerifyingPaymaster(paymasterUrl, entryPoint)
-      : undefined
-    const accountAPI = getSimpleAccount(
-      provider,
-      options.signKey,
-      entryPoint,
-      simpleAccountFactory,
-      paymasterAPI
-    )
+    const paymasterAPI = options.paymaster ? getVerifyingPaymaster(paymasterUrl, entryPoint) : undefined
+    const accountAPI = getSimpleAccount(provider, options.signKey, entryPoint, simpleAccountFactory, paymasterAPI)
 
     const privateKey = process.env.WALLET_POOL as string
     const target = new ethers.Wallet(privateKey, provider).address
-    const value = ethers.utils.parseEther('0.0008')
+    const value = ethers.utils.parseEther("0.0008")
     const op = await accountAPI.createSignedUserOp({
       target,
       value,
-      data: '0x',
+      data: "0x",
       ...(await getGasFee(provider)),
     })
     console.log(`Signed UserOperation: ${await printOp(op)}`)
@@ -87,7 +63,7 @@ async function simpleAccountTransfer(options: any) {
     const uoHash = await client.sendUserOpToBundler(op)
     console.log(`UserOpHash: ${uoHash}`)
 
-    console.log('Waiting for transaction...')
+    console.log("Waiting for transaction...")
     const txHash = await accountAPI.getUserOpReceipt(uoHash)
     console.log(`Transaction hash: ${txHash}`)
 
@@ -103,7 +79,7 @@ async function topUpAccount(address: string) {
   const wallet = new ethers.Wallet(privateKey, provider)
   const tx = {
     to: address,
-    value: ethers.utils.parseEther('0.001'),
+    value: ethers.utils.parseEther("0.001"),
   }
   const res = await wallet.sendTransaction(tx)
   return res
